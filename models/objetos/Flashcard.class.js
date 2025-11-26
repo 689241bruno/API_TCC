@@ -23,10 +23,8 @@ class Flashcard {
     this.dificuldade = dificuldade;
   }
 
-  // Listar todos os flashcards
   static async listar(usuario_id) {
     try {
-      // 💡 PG: Usa $1 e acessa .rows
       const result = await pool.query(
         "SELECT * FROM flashcards WHERE usuario_id = $1",
         [usuario_id]
@@ -38,7 +36,6 @@ class Flashcard {
     }
   }
 
-  // Criar flashcard
   static async criar(
     usuario_id,
     pergunta,
@@ -51,7 +48,6 @@ class Flashcard {
       const ultimaRevisao = new Date();
       const proximaRevisao = null;
 
-      // 💡 PG: Usa $N (do $1 ao $8) e a cláusula RETURNING id
       const sql = `
                 INSERT INTO flashcards 
                 (usuario_id, pergunta, resposta, materia, ultima_revisao, proxima_revisao, repeticoes, dificuldade)
@@ -71,7 +67,6 @@ class Flashcard {
 
       const result = await pool.query(sql, values);
 
-      // 💡 PG: Retorna o ID do item inserido (result.rows[0].id)
       return result.rows[0].id;
     } catch (err) {
       console.error("Erro ao criar Flashcard: ", err.message);
@@ -79,7 +74,6 @@ class Flashcard {
     }
   }
 
-  // Editar flashcard
   static async editar(id, dados) {
     try {
       const {
@@ -91,7 +85,6 @@ class Flashcard {
         dificuldade,
       } = dados;
 
-      // 💡 PG: Usa $N (do $1 ao $7)
       const sql = `
                 UPDATE flashcards 
                 SET pergunta = $1, resposta = $2, materia = $3, proxima_revisao = $4, repeticoes = $5, dificuldade = $6
@@ -115,10 +108,8 @@ class Flashcard {
     }
   }
 
-  // Deletar flashcard
   static async deletar(id) {
     try {
-      // 💡 PG: Usa $1
       await pool.query("DELETE FROM flashcards WHERE id = $1", [id]);
       return true;
     } catch (err) {
@@ -127,10 +118,8 @@ class Flashcard {
     }
   }
 
-  // Revisar flashcard
   static async revisar(id) {
     try {
-      // 💡 PG: Usa $1 e acessa .rows
       const result = await pool.query(
         "SELECT repeticoes FROM flashcards WHERE id = $1",
         [id]
@@ -144,13 +133,11 @@ class Flashcard {
       const flashcard = flashcards[0];
       const repeticoes = flashcard.repeticoes || 4;
 
-      // cálculo da nova revisão baseado na quantidade de repetições
       const diasEntreRevisoes = Math.floor(30 / repeticoes);
       const agora = new Date();
       const proximaRevisao = new Date();
       proximaRevisao.setDate(agora.getDate() + diasEntreRevisoes);
 
-      // 💡 PG: Usa $1, $2, $3
       const sql = `
                 UPDATE flashcards
                 SET ultima_revisao = $1, proxima_revisao = $2

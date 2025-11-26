@@ -1,9 +1,8 @@
 const Usuario = require("./Usuario.class");
-const pool = require("../../config/db"); // Usando 'pool' para consistência
+const pool = require("../../config/db");
 
 class Professor extends Usuario {
   constructor(usuario_id, usuario_email, materia = "") {
-    // 💡 CORREÇÃO: Chama o construtor da classe pai (Usuario) apenas uma vez
     super(usuario_id);
 
     this.usuario_id = usuario_id;
@@ -11,22 +10,19 @@ class Professor extends Usuario {
     this.materia = materia;
   }
 
-  // 1. LISTAR: Corrigido para acesso a result.rows
   static async listar() {
     try {
       const result = await pool.query("SELECT * FROM professores");
-      return result.rows; // 💡 PG: Acessa os resultados em .rows
+      return result.rows;
     } catch (err) {
       console.error("Erro ao listar professores:", err);
       throw new Error("Erro interno ao listar professores.");
     }
   }
 
-  // 2. CADASTRAR: Corrigido para $N, RETURNING id e acesso a result.rows[0].id
   static async cadastrar(usuario_id, materia = null, client = pool) {
     const executor = client || pool;
     try {
-      // 💡 PG: Usa $1, $2 e RETURNING id
       const sql = `
                 INSERT INTO professores (usuario_id, materia) 
                 VALUES ($1, $2)
@@ -36,7 +32,6 @@ class Professor extends Usuario {
 
       const result = await executor.query(sql, values);
 
-      // 💡 PG: Obtém o ID da linha retornada (result.rows[0].id)
       const id = result.rows[0].id;
 
       return { id: id, usuario_id, materia };
@@ -46,10 +41,8 @@ class Professor extends Usuario {
     }
   }
 
-  // 3. EDITAR: Corrigido para $N
   static async editar(usuario_id, materia) {
     try {
-      // 💡 PG: Usa $1, $2
       const sql = "UPDATE professores SET materia = $1 WHERE usuario_id = $2";
       await pool.query(sql, [materia, usuario_id]);
       return true;
@@ -59,10 +52,8 @@ class Professor extends Usuario {
     }
   }
 
-  // 4. DELETAR: Corrigido para $N
   static async deletar(usuario_id) {
     try {
-      // 💡 PG: Usa $1
       await pool.query("DELETE FROM professores WHERE usuario_id = $1", [
         usuario_id,
       ]);
@@ -73,7 +64,6 @@ class Professor extends Usuario {
     }
   }
 
-  // 5. PUBLICAR MATERIAL: Corrigido para $N, RETURNING id e acesso a result.rows[0].id
   static async publicarMaterial(
     tema,
     subtema,
@@ -83,7 +73,6 @@ class Professor extends Usuario {
     criado_por
   ) {
     try {
-      // 💡 PG: Usa $1 a $6 e RETURNING id
       const sql = `
                 INSERT INTO material (tema, subtema, materia, titulo, arquivo, criado_por) 
                 VALUES ($1, $2, $3, $4, $5, $6)
@@ -93,7 +82,6 @@ class Professor extends Usuario {
 
       const result = await pool.query(sql, values);
 
-      // Retorna o ID do material criado
       return result.rows[0];
     } catch (err) {
       console.error("Erro ao publicar material:", err);
@@ -101,7 +89,6 @@ class Professor extends Usuario {
     }
   }
 
-  // Método não-SQL mantido
   static async corrigirRedacao(redacao) {
     redacao.corrigidaPorProfessor = true;
     redacao.feedback = "Correção realizada!";

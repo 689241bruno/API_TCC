@@ -25,18 +25,16 @@ class Usuario {
     this.criado_em = criado_em;
   }
 
-  // 1. LISTAR: Corrigido para acessar resultados via .rows
   static async listar() {
     try {
       const result = await pool.query("SELECT * FROM usuarios");
-      return result.rows; // 💡 PG: Acessa os resultados em .rows
+      return result.rows;
     } catch (err) {
       console.error("Erro SQL no listar:", err);
       throw err;
     }
   }
 
-  // 2. CADASTRAR: Corrigido para $N, RETURNING id e acesso a result.rows[0].id
   static async cadastrar(
     nome,
     email,
@@ -46,7 +44,6 @@ class Usuario {
     is_admin,
     client
   ) {
-    // Usa o 'client' (para transações) ou o 'pool' (para consultas simples)
     const executor = client || pool;
 
     try {
@@ -60,23 +57,20 @@ class Usuario {
 
       const result = await executor.query(sql, values);
 
-      // 💡 PG: Obtém o ID e os dados da linha retornada (result.rows[0])
       return result.rows[0];
     } catch (err) {
-      // No PG, a mensagem de erro está em err.message
       console.error("Erro SQL no cadastrar usuário:", err.message);
       throw new Error("Erro ao cadastrar usuário: " + err.message);
     }
   }
 
-  // 3. LOGIN: Corrigido para $N e acesso a result.rows
   static async login(email, senha) {
     try {
       const result = await pool.query(
         "SELECT * FROM usuarios WHERE email = $1 AND senha = $2",
         [email, senha]
       );
-      // 💡 PG: Verifica o tamanho de .rows
+
       return result.rows.length > 0 ? result.rows[0] : null;
     } catch (err) {
       console.error("Erro na consulta de login:", err);
@@ -84,7 +78,6 @@ class Usuario {
     }
   }
 
-  // 4. EDITAR: Corrigido para $N e mapeamento dinâmico
   static async editar(id, dados) {
     console.log("Entrou em Usuario.editar com:", id, dados);
 
@@ -95,9 +88,8 @@ class Usuario {
     try {
       let campos = [];
       let valores = [];
-      let contador = 1; // Contador para placeholders $1, $2, etc.
+      let contador = 1;
 
-      // Itera sobre os dados para criar a query UPDATE
       for (const key in dados) {
         if (dados[key] !== undefined && key !== "id") {
           campos.push(`${key} = $${contador++}`);
@@ -107,25 +99,22 @@ class Usuario {
 
       if (campos.length === 0) return;
 
-      // Busca o usuário atual antes de atualizar
       const usuarioAtualResult = await pool.query(
         "SELECT * FROM usuarios WHERE id = $1",
         [id]
       );
-      const usuarioAtual = usuarioAtualResult.rows; // 💡 PG: .rows
+      const usuarioAtual = usuarioAtualResult.rows;
 
       if (usuarioAtual.length === 0) throw new Error("Usuário não encontrado.");
 
       const emailAntigo = usuarioAtual[0].email;
 
-      // Verifica se é admin (Ajustando a query e o acesso a .rows)
       const ehAdminResult = await pool.query(
         "SELECT * FROM admin WHERE usuario_email = $1",
         [emailAntigo]
       );
-      const ehAdmin = ehAdminResult.rows; // 💡 PG: .rows
+      const ehAdmin = ehAdminResult.rows;
 
-      // Impede alterar email de admin
       if (ehAdmin.length > 0 && dados.email && dados.email !== emailAntigo) {
         throw new Error(
           "Não é permitido alterar o email de um administrador, pois é chave estrangeira."
@@ -134,7 +123,6 @@ class Usuario {
 
       console.log("Dados recebidos para edição:", dados);
 
-      // Adiciona o ID do WHERE ao final dos valores
       const sql = `UPDATE usuarios SET ${campos.join(
         ", "
       )} WHERE id = $${contador}`;
@@ -143,7 +131,6 @@ class Usuario {
       await pool.query(sql, valores);
       console.log("Query final:", sql, valores);
 
-      // Seleciona o usuário atualizado (Ajustando a query e o acesso a .rows)
       const usuarioAtualizadoResult = await pool.query(
         "SELECT * FROM usuarios WHERE id = $1",
         [id]
@@ -162,15 +149,12 @@ class Usuario {
     }
   }
 
-  // 5. DELETAR: Corrigido para $N
   static async deletar(id) {
     await pool.query("DELETE FROM usuarios WHERE id = $1", [id]);
     return true;
   }
 
-  // 6. CHECKUSERTYPE: Corrigido para $N e acesso a .rows
   static async checkUserType(email) {
-    // Removendo parâmetros não utilizados
     const result = await pool.query(
       "SELECT id, nome, is_aluno, is_professor, is_admin FROM usuarios WHERE email = $1",
       [email]
@@ -178,7 +162,6 @@ class Usuario {
     return result.rows[0] || null;
   }
 
-  // 7. CHECKUSER: Corrigido para $N e acesso a .rows
   static async checkUser(email) {
     const result = await pool.query(
       "SELECT id FROM usuarios WHERE email = $1",
@@ -187,7 +170,6 @@ class Usuario {
     return result.rows.length > 0;
   }
 
-  // 8. CHECKUSERPASS: Corrigido para $N e acesso a .rows
   static async checkUserPass(email, senha) {
     const result = await pool.query(
       "SELECT id FROM usuarios WHERE email = $1 AND senha = $2",
@@ -196,21 +178,19 @@ class Usuario {
     return result.rows.length > 0;
   }
 
-  // 9. BUSCARPORID: Corrigido para $N e acesso a .rows
   static async buscarPorId(id) {
     try {
       const result = await pool.query("SELECT * FROM usuarios WHERE id = $1", [
         id,
       ]);
-      const rows = result.rows; // 💡 PG: .rows
+      const rows = result.rows;
 
       if (rows.length === 0) {
-        return null; // retorna null se o usuário não existir
+        return null;
       }
 
       const usuario = rows[0];
 
-      // ✅ Converte buffer para Base64
       if (usuario.foto) {
         const base64 = Buffer.from(usuario.foto).toString("base64");
         usuario.foto = `data:image/jpeg;base64,${base64}`;

@@ -9,6 +9,7 @@ router.delete("/deletar/:usuario_id", AlunoController.deletarAluno);
 router.get("/buscar/:usuario_id", AlunoController.buscarAlunoPorId);
 router.put("/modo-intensivo/:usuario_id", AlunoController.ativarModoIntensivo);
 router.get("/ranking/:usuario_id", AlunoController.checkRanking);
+router.get("/ranking-geral", AlunoController.listarRanking);
 router.put("/addxp/:usuario_id", AlunoController.addXp);
 
 module.exports = router;

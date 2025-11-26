@@ -1,17 +1,15 @@
 class Simulado {
   constructor(id, titulo, questoes = [], data = new Date()) {
     this.id = id;
-    this.titulo = titulo; // 💡 Adicionando 'titulo' ao construtor
-    this.questoes = questoes; // 💡 Usando 'questoes'
+    this.titulo = titulo;
+    this.questoes = questoes;
     this.data = data;
     this.nota = 0;
     this.tempo = 0;
   }
 
   gerarSimulado(adaptativo = false) {
-    // 💡 CORREÇÃO: Usando this.questoes em vez de this.perguntas
     if (adaptativo) {
-      // Supondo que as questões no array tenham uma propriedade 'dificuldade'
       return this.questoes.filter((q) => q.dificuldade <= 2);
     }
     return this.questoes;
@@ -20,9 +18,7 @@ class Simulado {
   corrigir(respostasAluno) {
     let acertos = 0;
 
-    // 💡 CORREÇÃO: Iterando corretamente sobre this.questoes
     this.questoes.forEach((questao, i) => {
-      // Este método depende que cada objeto 'questao' tenha o método 'verificarResposta'
       if (
         questao.verificarResposta &&
         questao.verificarResposta(respostasAluno[i])

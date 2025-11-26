@@ -9,21 +9,18 @@ class Desafios {
     this.img = img;
   }
 
-  // 1. LISTAR: Corrigido para acesso a result.rows
   static async listar() {
     try {
       const result = await pool.query("SELECT * FROM desafios");
-      return result.rows; // 💡 PG: Acessa os resultados em .rows
+      return result.rows;
     } catch (err) {
       console.error("Erro ao listar desafios:", err);
       throw new Error("Erro interno ao listar desafios.");
     }
   }
 
-  // 2. CRIAR DESAFIO: Corrigido para $N, RETURNING id
   static async criar({ titulo, descricao, xp, img }) {
     try {
-      // 💡 PG: Usa $N e RETURNING id
       const sql = `
                 INSERT INTO desafios (titulo, descricao, xp, img) 
                 VALUES ($1, $2, $3, $4)
@@ -33,19 +30,17 @@ class Desafios {
 
       const result = await pool.query(sql, values);
 
-      return result.rows[0].id; // 💡 PG: Obtém o ID da linha retornada
+      return result.rows[0].id;
     } catch (err) {
       console.error("Erro ao criar desafio:", err.message);
       throw new Error("Erro ao criar desafio.");
     }
   }
 
-  // 3. EDITAR DESAFIO: Corrigido para $N
   static async editar(id, dados) {
     try {
       const { titulo, descricao, xp, img } = dados;
 
-      // 💡 PG: Usa $N (do $1 ao $5)
       const sql =
         "UPDATE desafios SET titulo = $1, descricao = $2, xp = $3, img = $4 WHERE id = $5";
       const values = [titulo, descricao, xp, img, id];
@@ -58,10 +53,8 @@ class Desafios {
     }
   }
 
-  // 4. DELETAR DESAFIO: Corrigido para $N
   static async deletar(id) {
     try {
-      // 💡 PG: Usa $1
       await pool.query("DELETE FROM desafios WHERE id = $1", [id]);
       return true;
     } catch (err) {
@@ -70,7 +63,6 @@ class Desafios {
     }
   }
 
-  // 5. REGISTRAR PROGRESSO: Corrigido para $N, acesso a .rows e funções PG
   static async registrarProgresso(
     usuario_id,
     desafio_id,
@@ -78,7 +70,6 @@ class Desafios {
     concluida
   ) {
     try {
-      // Busca se o registro já existe (Acesso a .rows)
       const existsResult = await pool.query(
         "SELECT * FROM progresso_desafios WHERE usuario_id = $1 AND desafio_id = $2",
         [usuario_id, desafio_id]
@@ -86,8 +77,6 @@ class Desafios {
       const exists = existsResult.rows;
 
       if (exists.length > 0) {
-        // UPDATE
-        // 💡 PG: Usa CURRENT_TIMESTAMP ou NOW() e booleanos diretos (concluida)
         await pool.query(
           "UPDATE progresso_desafios SET progresso = $1, concluida = $2, concluida_em = NOW() WHERE usuario_id = $3 AND desafio_id = $4",
           [progresso, concluida, usuario_id, desafio_id]
@@ -107,7 +96,6 @@ class Desafios {
     }
   }
 
-  // 6. LISTAR PROGRESSO: Corrigido para $N e acesso a .rows
   static async listarProgresso(usuario_id) {
     try {
       const result = await pool.query(
@@ -123,10 +111,8 @@ class Desafios {
     }
   }
 
-  // 7. MARCAR CONCLUIDA: Corrigido para $N e funções PG
   static async marcarConcluida(usuario_id, desafio_id) {
     try {
-      // 💡 PG: Usa TRUE e NOW()
       const result = await pool.query(
         "UPDATE progresso_desafios SET concluida = TRUE, concluida_em = NOW() WHERE usuario_id = $1 AND desafio_id = $2",
         [usuario_id, desafio_id]

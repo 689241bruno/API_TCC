@@ -12,10 +12,9 @@ class Material {
   }
 
   static fromDB(row) {
-    // Construtor ligeiramente ajustado para corresponder à ordem dos campos
     return new Material(
       row.id,
-      row.materia, // Ajuste a ordem aqui, se necessário, ou no construtor
+      row.materia,
       row.tema,
       row.titulo,
       row.arquivo,
@@ -24,17 +23,14 @@ class Material {
     );
   }
 
-  // 1. LISTAR: Corrigido para acesso a result.rows
   static async listar() {
     try {
       console.log("[Material.listar] Executando SELECT * FROM material");
 
-      // 💡 PG: pool.query() retorna o objeto de resultado
       const result = await pool.query("SELECT * FROM material");
       const rows = result.rows;
 
       console.log(`[Material.listar] ${rows.length} registros encontrados`);
-      // console.table(rows); // Removido console.table pois pode falhar com grande volume
 
       return rows;
     } catch (err) {
@@ -43,12 +39,10 @@ class Material {
     }
   }
 
-  // 2. LISTAR MATERIAL: Corrigido para $N e acesso a .rows
   static async listarMaterial(materia) {
     try {
       console.log("Listando materiais para: ", materia);
 
-      // 💡 PG: Usa $1 e acessa .rows
       const result = await pool.query(
         "SELECT * FROM material WHERE materia = $1",
         [materia]
@@ -61,7 +55,7 @@ class Material {
         subtema: row.subtema,
         materia: row.materia,
         titulo: row.titulo,
-        // 💡 Tratamento de Buffer (BYTEA) do PG para Base64:
+
         arquivo: row.arquivo
           ? Buffer.from(row.arquivo).toString("base64")
           : null,
@@ -75,10 +69,8 @@ class Material {
     }
   }
 
-  // 3. ATUALIZAR PROGRESSO: Corrigido para $N e lógica PG (booleanos TRUE/FALSE)
   static async atualizarProgresso(idUsuario, atividadeId, concluida) {
     try {
-      // 💡 PG: Usa $1, $2 e acessa .rows
       const existingResult = await pool.query(
         "SELECT * FROM progresso_atividades WHERE usuario_id = $1 AND atividade_id = $2",
         [idUsuario, atividadeId]
@@ -86,14 +78,11 @@ class Material {
       const existing = existingResult.rows;
 
       if (existing.length > 0) {
-        // UPDATE
-        // 💡 PG: Usa TRUE ou FALSE para booleanos
         await pool.query(
           "UPDATE progresso_atividades SET concluida = $1 WHERE usuario_id = $2 AND atividade_id = $3",
           [concluida ? true : false, idUsuario, atividadeId]
         );
       } else {
-        // INSERT
         await pool.query(
           "INSERT INTO progresso_atividades (usuario_id, atividade_id, concluida) VALUES ($1, $2, $3)",
           [idUsuario, atividadeId, concluida ? true : false]
@@ -105,10 +94,8 @@ class Material {
     }
   }
 
-  // 4. LISTAR PROGRESSO: Corrigido para $N e acesso a .rows
   static async listarProgresso(idUsuario) {
     try {
-      // 💡 PG: Usa $1 e acessa .rows
       const result = await pool.query(
         `SELECT p.atividade_id, p.concluida, m.materia
                 FROM progresso_atividades p
@@ -123,15 +110,13 @@ class Material {
     }
   }
 
-  // 5. VER PDF: Corrigido para $N e acesso a .rows (retorna o resultado bruto do DB)
   static async verPDF(id) {
     try {
-      // 💡 PG: Usa $1
       const result = await pool.query(
         "SELECT arquivo FROM material WHERE id = $1",
         [id]
       );
-      return result.rows[0]?.arquivo || null; // Retorna o buffer do arquivo (ou null)
+      return result.rows[0]?.arquivo || null;
     } catch (err) {
       console.error("Erro ao visualizar PDF:", err);
       throw new Error("Erro interno ao visualizar PDF.");

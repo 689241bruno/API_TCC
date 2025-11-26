@@ -1,14 +1,9 @@
 class Notificacao {
-  constructor(
-    id,
-    destinatario,
-    mensagem,
-    titulo // 💡 CORREÇÃO: Adicionando 'titulo' aos argumentos
-  ) {
+  constructor(id, destinatario, mensagem, titulo) {
     this.id = id;
     this.destinatario = destinatario;
     this.mensagem = mensagem;
-    this.titulo = titulo; // Atribuição correta
+    this.titulo = titulo;
     this.lida = false;
   }
 
