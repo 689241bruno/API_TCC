@@ -167,8 +167,7 @@ class Aluno extends Usuario {
             a.usuario_id AS id, 
             u.nome, 
             a.xp,
-            u.fotos , 
-            a.tempo_estudo AS "studyTime" 
+            u.foto
         FROM
             alunos a
         JOIN
