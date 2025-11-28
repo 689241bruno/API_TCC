@@ -166,9 +166,9 @@ class Aluno extends Usuario {
         SELECT
             a.usuario_id AS id, 
             u.nome, 
-            a.xp
-            -- Se você tiver a coluna de tempo de estudo: 
-            -- , a.tempo_estudo AS "studyTime" 
+            a.xp,
+            u.fotos , 
+            a.tempo_estudo AS "studyTime" 
         FROM
             alunos a
         JOIN
