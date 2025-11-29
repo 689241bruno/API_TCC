@@ -105,28 +105,29 @@ exports.login = async (req, res) => {
 
 // Editar
 exports.editarUsuario = async (req, res) => {
-  const { id, nome, cor, foto } = req.body; // <-- inclui foto direto do JSON
+  // A variável 'foto' agora recebe diretamente a URL do Cloudinary
+  const { id, nome, cor, foto } = req.body;
 
   try {
     console.log("📦 Dados recebidos para edição:", {
       id,
       nome,
       cor,
-      temFoto: !!foto,
+      // 'foto' será a URL de texto, ou null/undefined
+      urlFotoRecebida: foto,
     });
 
-    let fotoBuffer = null;
-    if (foto && foto.startsWith("data:image")) {
-      // converte base64 para buffer
-      const base64Data = foto.split(",")[1];
-      fotoBuffer = Buffer.from(base64Data, "base64");
-    }
+    // 1. Otimização: Não precisamos mais de 'fotoBuffer'
+    // A lógica de Base64 e Buffer deve ser removida.
 
+    // 2. Chama o método de edição com a URL
     const usuarioAtualizado = await Usuario.editar(id, {
       nome,
       cor,
-      foto: fotoBuffer,
+      // Passamos a URL de texto diretamente para o banco
+      url_foto: foto, // <-- ATENÇÃO: Verifique o nome da coluna no seu método 'Usuario.editar'
     });
+
     res.json({
       mensagem: "Usuário atualizado com sucesso!",
       usuario: usuarioAtualizado,

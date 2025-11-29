@@ -167,7 +167,7 @@ class Aluno extends Usuario {
             a.usuario_id AS id, 
             u.nome, 
             a.xp,
-            u.foto
+            u.url_foto
         FROM
             alunos a
         JOIN
@@ -184,6 +184,22 @@ class Aluno extends Usuario {
       console.error("Erro ao buscar ranking no DB:", error);
 
       throw new Error("Erro no banco de dados ao buscar o ranking.");
+    }
+  }
+
+  static async atualizarUrlFoto(usuario_id, url_foto) {
+    try {
+      // A TABELA CORRETA É 'usuarios', não 'alunos', pois a coluna de foto está lá.
+      const sql = `
+                UPDATE usuarios 
+                SET url_foto = $1 
+                WHERE id = $2
+            `;
+      await pool.query(sql, [url_foto, usuario_id]);
+      return true;
+    } catch (err) {
+      console.error("Erro ao atualizar URL da foto:", err);
+      throw new Error("Erro interno ao atualizar URL da foto.");
     }
   }
 }

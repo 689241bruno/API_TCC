@@ -202,6 +202,16 @@ class Usuario {
       throw new Error("Erro interno ao buscar usuário.");
     }
   }
+
+  static async buscarTodosUsuarios() {
+    try {
+      const result = await pool.query("SELECT id, nome FROM usuarios");
+      return result.rows;
+    } catch (error) {
+      console.error("Erro ao buscar usuários para migração:", error);
+      throw new Error("Falha na busca de usuários.");
+    }
+  }
 }
 
 module.exports = Usuario;
